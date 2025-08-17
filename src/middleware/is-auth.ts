@@ -39,6 +39,7 @@ async function isAuth(req: Request, res: Response, next: NextFunction) {
     };
 
     next();
+    return;
   } catch (error) {
     return res.status(401).json({ message: "Authentication failed.", error });
   }
