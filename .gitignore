@@ -1,0 +1,11 @@
+# Node modules
+node_modules/
+
+# TypeScript build output
+dist/
+
+# Environment variables (you will add them manually in the server)
+.env
+
+# Logs
+*.log
