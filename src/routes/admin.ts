@@ -3,6 +3,7 @@ import { body } from "express-validator";
 import { verifyLogin, login, addAdmin } from "../controllers/admin.js";
 import Admin from "../models/admin.js";
 import { compare } from "bcryptjs";
+import decodeAdmin from "../middleware/decode-admin.js";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -67,35 +68,10 @@ router.post(
 
 router.post(
   "/verify-login",
+  decodeAdmin,
   body("code", "Verification Code must be 6 numbers.")
     .trim()
-    .isLength({ max: 6, min: 6 })
-    .custom(async (val, { req }) => {
-      const admin = await Admin.findOne({ code: val });
-
-      if (!admin) throw new Error("Admin not found");
-      if (!admin.code || !admin.code_expire_in) {
-        throw new Error("No active verification code");
-      }
-
-      const now = new Date();
-      if (now > admin.code_expire_in) {
-        admin.code = undefined;
-        admin.code_expire_in = undefined;
-        await admin.save();
-        throw new Error("Verification code expired");
-      }
-
-      if (Number(val) !== admin.code) {
-        throw new Error("Invalid verification code");
-      }
-
-      admin.code = undefined;
-      admin.code_expire_in = undefined;
-      await admin.save();
-      req.adminData = admin;
-      return true;
-    }),
+    .isLength({ max: 6, min: 6 }),
   verifyLogin
 );
 

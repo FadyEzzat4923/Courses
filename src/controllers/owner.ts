@@ -4,7 +4,6 @@ import { sendEmail } from "../config/sendEmail.js";
 import { validationResult } from "express-validator";
 import jwt from "jsonwebtoken";
 import generateVerificationCode from "../util/generateVerificationCode.js";
-import { Types } from "mongoose";
 
 export async function getVerificationCode(req: Request, res: Response) {
   const ownerId = req.admin!.ownerId;

@@ -84,6 +84,7 @@ export async function login(req: Request, res: Response) {
   const { email } = req.body;
   const code = generateVerificationCode();
   const ownerEmail = process.env.OWNER_EMAIL as string;
+  const JWT_SECRET = process.env.JWT_SECRET as string;
 
   try {
     const admin = await Admin.findOne({ email });
@@ -179,9 +180,19 @@ export async function login(req: Request, res: Response) {
     </div>
        `
     );
+
+    const token = jwt.sign(
+      {
+        _id: admin!._id.toString(),
+        ownerId: owner!._id.toString(),
+      },
+      JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
     return res
       .status(200)
-      .json({ message: "Verification code sent to Admin email" });
+      .json({ message: "Verification code sent to Admin email", token });
   } catch (error) {
     return res.status(500).json({ message: "Something went wrong" });
   }
@@ -194,13 +205,36 @@ export async function verifyLogin(req: Request, res: Response) {
       .status(400)
       .json({ errors: { code: validation.array()[0].msg } });
   }
-  const { _id: adminId } = req.adminData;
-  const ownerEmail = process.env.OWNER_EMAIL as string;
+
+  const code = req.body.code;
+  const { ownerId, _id: adminId } = req.admin!;
   try {
-    const owner = await Owner.findOne({ email: ownerEmail });
+    const admin = await Admin.findById(adminId);
+
+    if (!admin) throw new Error("Admin not found");
+    if (!admin.code || !admin.code_expire_in) {
+      throw new Error("No active verification code");
+    }
+
+    const now = new Date();
+    if (now > admin.code_expire_in) {
+      admin.code = undefined;
+      admin.code_expire_in = undefined;
+      await admin.save();
+      throw new Error("Verification code expired");
+    }
+
+    if (Number(code) !== admin.code) {
+      throw new Error("Invalid verification code");
+    }
+
+    admin.code = undefined;
+    admin.code_expire_in = undefined;
+    await admin.save();
+
     const token = jwt.sign(
       {
-        ownerId: owner!._id.toString(),
+        ownerId,
         adminId,
       },
       process.env.JWT_SECRET as string
