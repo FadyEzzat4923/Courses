@@ -1,16 +1,16 @@
 import { Request, Response, NextFunction } from "express";
-import { verify, JwtPayload } from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 declare module "express-serve-static-core" {
   interface Request {
-    auth?: {
-      adminId: string;
+    admin?: {
+      _id: string;
       ownerId: string;
     };
   }
 }
 
-async function isAuth(req: Request, res: Response, next: NextFunction) {
+async function decodeAdmin(req: Request, res: Response, next: NextFunction) {
   try {
     const authorization = req.headers.authorization;
     if (!authorization || !authorization.startsWith("Bearer ")) {
@@ -25,7 +25,7 @@ async function isAuth(req: Request, res: Response, next: NextFunction) {
     }
 
     const JWT_SECRET = process.env.JWT_SECRET as string;
-    const decoded = verify(token, JWT_SECRET) as JwtPayload;
+    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
 
     if (!decoded || typeof decoded !== "object") {
       return res
@@ -33,8 +33,8 @@ async function isAuth(req: Request, res: Response, next: NextFunction) {
         .json({ message: "Token is not valid or expired." });
     }
 
-    req.auth = {
-      adminId: decoded.adminId,
+    req.admin = {
+      _id: decoded._id,
       ownerId: decoded.ownerId,
     };
 
@@ -45,4 +45,4 @@ async function isAuth(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-export default isAuth;
+export default decodeAdmin;

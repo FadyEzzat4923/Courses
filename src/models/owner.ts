@@ -1,18 +1,17 @@
 import { model, Schema, Document, Types } from "mongoose";
 
-interface IAdmin extends Document {
+interface IOwner extends Document {
   _id: Types.ObjectId;
-  adminName: string;
+  ownerName: string;
   email: string;
-  password: string;
-  centerName: string;
+  verifiedAdmin?: Types.ObjectId[];
   code?: number;
   code_expire_in?: Date;
 }
 
-const adminSchema = new Schema<IAdmin>(
+const ownerSchema = new Schema<IOwner>(
   {
-    adminName: {
+    ownerName: {
       type: String,
       required: true,
       trim: true,
@@ -23,16 +22,12 @@ const adminSchema = new Schema<IAdmin>(
       unique: true,
       lowercase: true,
     },
-    password: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    centerName: {
-      type: String,
-      required: true,
-      trim: true,
-    },
+    verifiedAdmin: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Admin",
+      },
+    ],
     code: {
       type: Number,
     },
@@ -45,4 +40,4 @@ const adminSchema = new Schema<IAdmin>(
   }
 );
 
-export default model<IAdmin>("Admin", adminSchema);
+export default model<IOwner>("Owner", ownerSchema);
