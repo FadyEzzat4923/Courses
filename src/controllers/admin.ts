@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import { hash } from "bcryptjs";
 import Owner from "../models/owner.js";
 import generateVerificationCode from "../util/generateVerificationCode.js";
+import { adminEmail } from "../util/sendEmailHTML.js";
 
 export async function addAdmin(req: Request, res: Response) {
   const validation = validationResult(req);
@@ -104,82 +105,8 @@ export async function login(req: Request, res: Response) {
     admin!.code_expire_in = new Date(Date.now() + 10 * 60 * 1000);
     await admin!.save();
 
-    await sendEmail(
-      email,
-      "Admin Verification Code",
-      `
-      <div
-      style="
-        max-width: 600px;
-        margin: 40px auto;
-        background: #ffffff;
-        border-radius: 12px;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-      "
-    >
-      <div
-        style="
-          background: linear-gradient(135deg, #004db1, #006eff);
-          padding: 25px;
-          text-align: center;
-        "
-      >
-        <h1
-          style="
-            margin: 0;
-            font-size: 2rem;
-            color: #ffffff;
-            letter-spacing: 1px;
-          "
-        >
-          Admin Verification Code
-        </h1>
-      </div>
-
-      <div style="padding: 30px; text-align: center; color: #333333;">
-        <p style="font-size: 1.2rem; margin-bottom: 20px;">
-          Hello <strong>${
-            admin!.adminName
-          }</strong>, please use the following code to verify
-          your login:
-        </p>
-
-        <div
-          style="
-            font-size: 2rem;
-            font-weight: bold;
-            background: #004db1;
-            color: #ffffff;
-            display: inline-block;
-            padding: 15px 30px;
-            border-radius: 8px;
-            letter-spacing: 4px;
-          "
-        >
-          ${code}
-        </div>
-
-        <p style="margin-top: 25px; font-size: 0.95rem; color: #555555;">
-          This code will expire in <strong>10 minutes</strong>. If you did not
-          request this code, please contact support immediately.
-        </p>
-      </div>
-
-      <div
-        style="
-          background: #f1f3f6;
-          padding: 15px;
-          text-align: center;
-          font-size: 0.85rem;
-          color: #777777;
-        "
-      >
-        &copy; 2025 ${admin!.centerName}. All rights reserved.
-      </div>
-    </div>
-       `
-    );
+    const HTML = adminEmail(code, admin!.adminName, admin!.centerName);
+    await sendEmail(email, "Admin Verification Code", HTML);
 
     const token = jwt.sign(
       {
@@ -242,8 +169,6 @@ export async function verifyLogin(req: Request, res: Response) {
 
     return res.status(200).json({ token });
   } catch (error: any) {
-    return res
-      .status(500)
-      .json({ message: error.message || "Something went wrong" });
+    return res.status(500).json({ message: "Something went wrong" });
   }
 }

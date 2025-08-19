@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { verify, JwtPayload } from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -25,7 +25,7 @@ async function isAuth(req: Request, res: Response, next: NextFunction) {
     }
 
     const JWT_SECRET = process.env.JWT_SECRET as string;
-    const decoded = verify(token, JWT_SECRET) as JwtPayload;
+    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
 
     if (!decoded || typeof decoded !== "object") {
       return res

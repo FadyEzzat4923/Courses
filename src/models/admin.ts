@@ -8,6 +8,7 @@ interface IAdmin extends Document {
   centerName: string;
   code?: number;
   code_expire_in?: Date;
+  courses?: Types.ObjectId[];
 }
 
 const adminSchema = new Schema<IAdmin>(
@@ -39,6 +40,12 @@ const adminSchema = new Schema<IAdmin>(
     code_expire_in: {
       type: Date,
     },
+    courses: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Course",
+      },
+    ],
   },
   {
     timestamps: true,

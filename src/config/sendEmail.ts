@@ -15,7 +15,7 @@ export async function sendEmail(
     });
 
     await transporter.sendMail({
-      from: `"Center Application" <${process.env.GMAIL_USER}>`,
+      from: `"MWD" <${process.env.GMAIL_USER}>`,
       to,
       subject,
       html,
