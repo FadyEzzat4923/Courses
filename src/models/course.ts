@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import { Schema, Types, model } from "mongoose";
 
 interface ICourse {
   title: string;
@@ -7,6 +7,7 @@ interface ICourse {
   startDate: Date;
   endDate: Date;
   appointment: Date[];
+  students?: Types.ObjectId[];
 }
 
 const courseSchema = new Schema<ICourse>(
@@ -34,6 +35,12 @@ const courseSchema = new Schema<ICourse>(
       required: true,
     },
     appointment: [{ type: Date, required: true }],
+    students: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Student",
+      },
+    ],
   },
   {
     timestamps: true,
